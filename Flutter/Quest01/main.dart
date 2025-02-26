@@ -68,3 +68,12 @@ void main() {
   PomodoroTimer pomodoro = PomodoroTimer(); // PomodoroTimer 객체 생성
   pomodoro.startTimer(); // 타이머 시작
 }
+
+//전체해석
+//현재 isWorking == true (작업 중) 이라면?
+//duration = workDuration (25초)
+
+
+//현재 isWorking == false (휴식 중) 이라면?
+//currentCycle == cycle - 1 (예: 4번째 작업이 끝난 후) → longBreak (15초) 적용
+//그렇지 않으면 shortBreak (5초) 적용

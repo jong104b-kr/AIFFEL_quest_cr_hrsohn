@@ -4,10 +4,10 @@ import 'dart:async'; // 비동기 작업을 위한 Timer 라이브러리 추가
                      // https://genius-duck-coding-story.tistory.com/290
 
 class PomodoroTimer {
-  int workDuration = 25; // 작업 시간 : (25초) * 60 =  (25분) → (25초) 시연시간 단축을 위해 변경.
-  int shortBreak = 5;   // 짧은 휴식 시간 : (5초) * 60 = (5분) → (5초)  상동
-  int longBreak = 15;   // 긴 휴식 시간 (15초) * 60 =  (15분) → (15초)  상동
-  int cycle = 4; // 4회차마다 긴 휴식 적용
+  int workDuration = 25; // 작업 시간 : (25초) * 60 =  (25분) → (25초) 시연시간 단축을 위해 변경. *60을 해주면 25분으로 변경가능
+  int shortBreak = 5;   // 짧은 휴식 시간 : (5초) * 60 = (5분) → (5초)  상동 *60을 해주면 5분으로 변경가능
+  int longBreak = 15;   // 긴 휴식 시간 (15초) * 60 =  (15분) → (15초)  상동*60을 해주면 15분으로 변경가능
+  int cycle = 4; // 4회차마다 긴 휴식(15초) 적용
   int currentCycle = 0; // 현재 진행 중인 사이클 횟수
   bool isWorking = true; // 현재 작업 중인지 여부
   Timer? timer; // Timer 객체 선언, 교재 p.85 참고, 

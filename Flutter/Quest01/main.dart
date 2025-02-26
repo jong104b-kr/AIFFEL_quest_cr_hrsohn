@@ -1,62 +1,70 @@
-import 'dart:async'; // ºñµ¿±â ÀÛ¾÷À» À§ÇÑ Timer ¶óÀÌºê·¯¸® Ãß°¡
-                     // async : awaitÀ» »ç¿ëÇÑ ºñµ¿±â ÇÔ¼ö¸¦
-                     // Á¤ÀÇÇÏ´Â Å°¿öµå. ÀÌ ÇÔ¼öÀÇ ¹İÈ¯Å¸ÀÔÀº Ç×»ó FutureÀÌ´Ù.
+import 'dart:async'; // ë¹„ë™ê¸° ì‘ì—…ì„ ìœ„í•œ Timer ë¼ì´ë¸ŒëŸ¬ë¦¬ ì¶”ê°€
+                     // async : awaitì„ ì‚¬ìš©í•œ ë¹„ë™ê¸° í•¨ìˆ˜ë¥¼
+                     // ì •ì˜í•˜ëŠ” í‚¤ì›Œë“œ. ì´ í•¨ìˆ˜ì˜ ë°˜í™˜íƒ€ì…ì€ í•­ìƒ Futureì´ë‹¤.
                      // https://genius-duck-coding-story.tistory.com/290
 
 class PomodoroTimer {
-  int workDuration = 25; // ÀÛ¾÷ ½Ã°£ : (25ÃÊ) * 60 =  (25ºĞ) ¡æ (25ÃÊ)
-  int shortBreak = 5;   // ÂªÀº ÈŞ½Ä ½Ã°£ : (5ÃÊ) * 60 = (5ºĞ) ¡æ (5ÃÊ)
-  int longBreak = 15;   // ±ä ÈŞ½Ä ½Ã°£ (15ÃÊ) * 60 =  (15ºĞ) ¡æ (15ÃÊ)
-  int cycle = 4; // 4È¸Â÷¸¶´Ù ±ä ÈŞ½Ä Àû¿ë
-  int currentCycle = 0; // ÇöÀç ÁøÇà ÁßÀÎ »çÀÌÅ¬ È½¼ö
-  bool isWorking = true; // ÇöÀç ÀÛ¾÷ ÁßÀÎÁö ¿©ºÎ
-  Timer? timer; // Timer °´Ã¼ ¼±¾ğ, ±³Àç p.85 Âü°í, ³Î Çã¿ë(?)
+  int workDuration = 25; // ì‘ì—… ì‹œê°„ : (25ì´ˆ) * 60 =  (25ë¶„) â†’ (25ì´ˆ) ì‹œì—°ì‹œê°„ ë‹¨ì¶•ì„ ìœ„í•´ ë³€ê²½.
+  int shortBreak = 5;   // ì§§ì€ íœ´ì‹ ì‹œê°„ : (5ì´ˆ) * 60 = (5ë¶„) â†’ (5ì´ˆ)  ìƒë™
+  int longBreak = 15;   // ê¸´ íœ´ì‹ ì‹œê°„ (15ì´ˆ) * 60 =  (15ë¶„) â†’ (15ì´ˆ)  ìƒë™
+  int cycle = 4; // 4íšŒì°¨ë§ˆë‹¤ ê¸´ íœ´ì‹ ì ìš©
+  int currentCycle = 0; // í˜„ì¬ ì§„í–‰ ì¤‘ì¸ ì‚¬ì´í´ íšŸìˆ˜
+  bool isWorking = true; // í˜„ì¬ ì‘ì—… ì¤‘ì¸ì§€ ì—¬ë¶€
+  Timer? timer; // Timer ê°ì²´ ì„ ì–¸, êµì¬ p.85 ì°¸ê³ , 
+                //(ë¬¼ìŒí‘œ)ëŠ” nullable íƒ€ì…ì„ ì˜ë¯¸í•˜ë©°, timer ë³€ìˆ˜ì— nullì„ ì €ì¥í•  ìˆ˜ ìˆìŒì„ ë‚˜íƒ€ëƒ„. 
+                //ì´ˆê¸°ì—ëŠ” null ìƒíƒœì´ë©°, startTimer() í•¨ìˆ˜ê°€ ì‹¤í–‰ë  ë•Œ Timer.periodic()ì„ í†µí•´ timerê°€ ìƒì„±. 
+                //íƒ€ì´ë¨¸ê°€ ì‹¤í–‰ë˜ì§€ ì•ŠëŠ” ì´ˆê¸° ìƒíƒœì—ì„œ timerëŠ” ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë¯€ë¡œ nullë¡œ ì´ˆê¸°í™”.
 
-  // Å¸ÀÌ¸Ó ½ÃÀÛ ÇÔ¼ö(¸Ş¼Òµå)
+  // íƒ€ì´ë¨¸ ì‹œì‘ í•¨ìˆ˜(ë©”ì†Œë“œ)
   void startTimer() {
-    // ÇöÀç ¸ğµå(ÀÛ¾÷/ÈŞ½Ä)¿¡ µû¶ó ½Ã°£ ¼³Á¤
-    // »ïÇ×¿¬»êÀÚ ÁßÃ¸ »ç¿ë, https://blog.naver.com/kyg1022/223154013342 Âü°í
+    // í˜„ì¬ ëª¨ë“œ(ì‘ì—…/íœ´ì‹)ì— ë”°ë¼ ì‹œê°„ ì„¤ì •
+    // ì‚¼í•­ì—°ì‚°ì ì¤‘ì²© ì‚¬ìš©, https://blog.naver.com/kyg1022/223154013342 ì°¸ê³ 
     int duration =
         isWorking
         ? workDuration 
         : (currentCycle == cycle - 1 ? longBreak : shortBreak);
+        //isWorkingì´ true(ì‘ì—… ì¤‘) ì´ë©´ workDuration(25ì´ˆ) í• ë‹¹
+        //isWorkingì´ false(íœ´ì‹ ì‹œê°„) ì´ë©´ ë‘ ë²ˆì§¸ ì¡°ê±´ë¬¸ ì‹¤í–‰
 
-    // 1ÃÊ¸¶´Ù ½ÇÇàµÇ´Â Å¸ÀÌ¸Ó ¼³Á¤, Timer Å¬·¡½º »ç¿ë, ÀÎ½ºÅÏ¼ö º¯¼ö timer È£Ãâ
+        //currentCycle == cycle - 1ì´ë©´ ê¸´ íœ´ì‹ (longBreak, 15ì´ˆ) ì ìš©
+        //ê·¸ë ‡ì§€ ì•Šìœ¼ë©´ ì§§ì€ íœ´ì‹ (shortBreak, 5ì´ˆ) ì ìš©
+
+    // 1ì´ˆë§ˆë‹¤ ì‹¤í–‰ë˜ëŠ” íƒ€ì´ë¨¸ ì„¤ì •, Timer í´ë˜ìŠ¤ ì‚¬ìš©, ì¸ìŠ¤í„´ìˆ˜ ë³€ìˆ˜ timer í˜¸ì¶œ
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (duration <= 0) { // ½Ã°£ÀÌ Á¾·áµÇ¸é
-        timer.cancel(); // Å¸ÀÌ¸Ó Á¤Áö
-        switchMode(); // ¸ğµå º¯°æ (ÀÛ¾÷ <-> ÈŞ½Ä)
+      if (duration <= 0) { // ì‹œê°„ì´ ì¢…ë£Œë˜ë©´
+        timer.cancel(); // íƒ€ì´ë¨¸ ì •ì§€
+        switchMode(); // ëª¨ë“œ ë³€ê²½ (ì‘ì—… <-> íœ´ì‹)
       } else {
-        duration--; // ³²Àº ½Ã°£ 1ÃÊ °¨¼Ò
-        printTime(duration); // ÇöÀç ½Ã°£ Ãâ·Â
+        duration--; // ë‚¨ì€ ì‹œê°„ 1ì´ˆ ê°ì†Œ
+        printTime(duration); // í˜„ì¬ ì‹œê°„ ì¶œë ¥
       }
-    }); // °ıÈ£ À§Ä¡ ¼öÁ¤ÇØ¾ß ÇÔ, µé¿©¾²±â ¸ÂÃß±â
+    }); 
   }
 
-  // ÀÛ¾÷ <-> ÈŞ½Ä ¸ğµå º¯°æ ÇÔ¼ö(¸Ş¼Òµå)
+  // ì‘ì—… <-> íœ´ì‹ ëª¨ë“œ ë³€ê²½ í•¨ìˆ˜(ë©”ì†Œë“œ)
   void switchMode() {
-    isWorking = !isWorking; // ÀÛ¾÷ <-> ÈŞ½Ä »óÅÂ ÀüÈ¯, ºÒ¸®¾ğ ÀÚ·áÇü
+    isWorking = !isWorking; // ì‘ì—… <-> íœ´ì‹ ìƒíƒœ ì „í™˜, ë¶ˆë¦¬ì–¸ ìë£Œí˜•
 
-    // ÀÛ¾÷ÀÌ ³¡³ª°í ÈŞ½ÄÀ¸·Î ÀüÈ¯µÉ ¶§ »çÀÌÅ¬ Áõ°¡
+    // ì‘ì—…ì´ ëë‚˜ê³  íœ´ì‹ìœ¼ë¡œ ì „í™˜ë  ë•Œ ì‚¬ì´í´ ì¦ê°€
     if (!isWorking) {
       currentCycle = (currentCycle + 1) % cycle;
     }
 
-    startTimer(); // »õ·Î¿î ¸ğµå·Î Å¸ÀÌ¸Ó ½ÃÀÛ, ¸Ş¼Òµå È£Ãâ 
+    startTimer(); // ìƒˆë¡œìš´ ëª¨ë“œë¡œ íƒ€ì´ë¨¸ ì‹œì‘, ë©”ì†Œë“œ í˜¸ì¶œ 
   }
 
-  // ³²Àº ½Ã°£À» mm:ss Çü½ÄÀ¸·Î Ãâ·ÂÇÏ´Â ÇÔ¼ö
+  // ë‚¨ì€ ì‹œê°„ì„ mm:ss í˜•ì‹ìœ¼ë¡œ ì¶œë ¥í•˜ëŠ” í•¨ìˆ˜
   void printTime(int seconds) {
-    // ºĞ °è»ê,¸òÀ» ±¸ÇÏ´Â ¿¬»êÀÚ(~/) ÀÌ¿ë,https://brunch.co.kr/@mystoryg/120 Âü°í
+    // ë¶„ ê³„ì‚°,ëª«ì„ êµ¬í•˜ëŠ” ì—°ì‚°ì(~/) ì´ìš©,https://brunch.co.kr/@mystoryg/120 ì°¸ê³ 
     int minutes = seconds ~/ 60;
-    // ÃÊ °è»ê, ³ª¸ÓÁö ¿¬»êÀÚ(%) ÀÌ¿ë
+    // ì´ˆ ê³„ì‚°, ë‚˜ë¨¸ì§€ ì—°ì‚°ì(%) ì´ìš©
     int secs = seconds % 60;
-    // µÎ ÀÚ¸® ¼ö Çü½Ä Ãâ·Â, https://code-lab.tistory.com/1334 Âü°í
+    // ë‘ ìë¦¬ ìˆ˜ í˜•ì‹ ì¶œë ¥, https://code-lab.tistory.com/1334 ì°¸ê³ 
     print('$minutes:${secs.toString().padLeft(2, '0')}'); 
   }
-} // Å¬·¡½º Á¾·á
+} // í´ë˜ìŠ¤ ì¢…ë£Œ
 
 void main() {
-  PomodoroTimer pomodoro = PomodoroTimer(); // PomodoroTimer °´Ã¼ »ı¼º
-  pomodoro.startTimer(); // Å¸ÀÌ¸Ó ½ÃÀÛ
+  PomodoroTimer pomodoro = PomodoroTimer(); // PomodoroTimer ê°ì²´ ìƒì„±
+  pomodoro.startTimer(); // íƒ€ì´ë¨¸ ì‹œì‘
 }
